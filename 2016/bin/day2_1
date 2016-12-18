@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+
+class Pin
+  attr_accessor :pad, :cx, :cy, :lx, :ly, :last, :pin
+  def initialize(codefile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '2', 'input')))
+    self.pad = [[1,2,3],[4,5,6],[7,8,9]]
+    self.cx = 1
+    self.cy = 1
+    self.pin = []
+    File.readlines(codefile).each do |line|
+      line.strip.split('').each do |direction|
+        move(direction)
+      end
+      puts "Location: #{current}"
+      self.pin << pad[self.cy][self.cx]
+    end
+    puts "PIN: #{pin.join('')}"
+  end
+
+  def move(dir)
+    last = current
+    case dir
+    when 'U'
+      self.cy -= 1 unless self.cy == 0
+    when 'D'
+      self.cy += 1 unless self.cy == 2
+    when 'L'
+      self.cx -= 1 unless self.cx == 0
+    when 'R'
+      self.cx += 1 unless self.cx == 2
+    else
+      fail "Unknown direction #{dir}"
+    end
+    puts "#{dir}: #{last} -> #{self.current}"
+  end
+
+  def current
+    [cx, cy]
+  end
+end
+
+if __FILE__ == $0
+  Pin.new
+end
