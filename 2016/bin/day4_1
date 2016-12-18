@@ -1,0 +1,83 @@
+#!/usr/bin/env ruby
+require 'pp'
+require 'byebug'
+
+class Rooms
+  attr_accessor :valid_rooms
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '4', 'input')))
+    self.valid_rooms = []
+    File.readlines(infile).each do |line|
+      room = Room.new(line)
+      #pp room.name
+      #pp room.sector
+      #pp room.checksum
+      #pp room.histogram
+      #pp room.sanity_check
+      valid = room.valid?
+      #pp valid
+      self.valid_rooms << room if valid
+    end
+    sum = 0
+    self.valid_rooms.each do |room|
+      #pp room.name
+      #pp room.sector
+      #pp room.checksum
+      pp room.sanity_check
+      sum += room.sector
+    end
+    puts "Sector Sum: #{sum}"
+  end
+
+  class Room
+    attr_accessor :name, :sector, :checksum
+    def initialize(string)
+      self.name, self.sector, self.checksum = _parse(string)
+    end
+
+    def valid?
+      hg = histogram
+      index = 0
+      while(index < checksum.length-1)
+        return false if hg[checksum[index]] == 0
+        return false if hg[checksum[index]] < hg[checksum[index+1]]
+        if hg[checksum[index]] == hg[checksum[index+1]]
+          return false if checksum[index] > checksum[index+1]
+        end
+        index += 1
+      end
+      return false if hg[checksum[index]] == 0
+      true
+    end
+
+    def sanity_check
+      hg = histogram
+      sanity = []
+      checksum.each do |c|
+        sanity << "#{c} = #{hg[c]}"
+      end
+      sanity
+    end
+
+    def histogram
+      hg = Hash.new(0)
+      name.split('').each do |char|
+        if hg.key?(char)
+          hg[char] += 1
+        else
+          hg[char] = 1
+        end
+      end
+      hg
+    end
+
+    def _parse(string)
+      matches = /(\S+?)\-(\d+)\[([a-z]+)\]/.match(string)
+      fail "Not a valid string" unless matches.length == 4
+      [matches[1], matches[2].to_i, matches[3].split('')]
+    end
+  end
+end
+
+if __FILE__ == $0
+  Rooms.new
+end
