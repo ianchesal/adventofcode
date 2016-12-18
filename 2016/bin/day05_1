@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+require 'digest'
+require 'pp'
+require 'byebug'
+
+class Password
+  attr_accessor :valid_rooms
+  def initialize(doorid = 'abbhdwsy')
+    password = ''
+    index = 0
+    while(password.length < 8)
+      md5 = Digest::MD5.hexdigest(doorid + index.to_s)
+      if md5.start_with?('00000')
+        password += md5.split('')[5]
+        pp password
+      end
+      index += 1
+    end
+  end
+end
+
+
+if __FILE__ == $0
+  Password.new
+end
