@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Repititions
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '6', 'input')))
+    message = ''
+    columns = []
+    File.readlines(infile).each do |line|
+      chars = line.strip.split('')
+      pp chars
+      i = 0
+      while(i < chars.length)
+        columns[i] = {} unless columns[i]
+        columns[i][chars[i]] = 0 unless columns[i].key?(chars[i])
+        columns[i][chars[i]] += 1
+        i += 1
+      end
+    end
+    columns.each do |c|
+      message += c.sort_by {|_key, value| value}[0][0]
+    end
+    puts message
+  end
+end
+
+if __FILE__ == $0
+  Repititions.new
+end
