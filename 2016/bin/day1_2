@@ -1,0 +1,95 @@
+#!/usr/bin/env ruby
+
+class Traveler
+  attr_accessor :x, :y, :facing, :visited
+  def initialize(dirfile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '1', 'input')))
+    self.x = 0
+    self.y = 0
+    self.facing = :north
+    self.visited = {}
+    self.visited[location] = 1
+    puts "Reading #{dirfile}"
+    begin
+      File.read(dirfile).split(/,\s*/).each do |direction|
+        travel(direction)
+      end
+    rescue
+    end
+    puts ''
+    puts "Final Location: #{location}"
+    puts "Distance:       #{x.abs + y.abs}"
+  end
+
+  def location
+    [x, y]
+  end
+
+  def travel(direction)
+    puts "Start:        #{facing} #{location}"
+    puts "Direction:    #{direction}"
+    t = direction[0]
+    distance = direction[1..-1].to_i
+    case t.downcase
+    when 'l'
+      turn_left
+    when 'r'
+      turn_right
+    else
+      fail "Unknown direction #{direction}"
+    end
+    walk(distance)
+    puts "End:          #{facing} #{location}"
+  end
+
+  def turn_left
+    case self.facing
+    when :north
+      self.facing = :west
+    when :east
+      self.facing = :north
+    when :south
+      self.facing = :east
+    when :west
+      self.facing = :south
+    end
+  end
+
+  def turn_right
+    case self.facing
+    when :north
+      self.facing = :east
+    when :east
+      self.facing = :south
+    when :south
+      self.facing = :west
+    when :west
+      self.facing = :north
+    end
+  end
+
+  def walk(distance)
+    steps = 0
+    while steps < distance
+      case self.facing
+      when :north
+        self.y += 1
+      when :east
+        self.x += 1
+      when :south
+        self.y -= 1
+      when :west
+        self.x -= 1
+      end
+      if visited.key?(location)
+        raise "Secret HQ found"
+      else
+        visited[location] = 1
+      end
+      steps += 1
+    end
+  end
+end
+
+if __FILE__ == $0
+  Traveler.new
+end
