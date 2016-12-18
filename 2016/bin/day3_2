@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Triangles
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '3', 'input')))
+    count = 0
+    sets = []
+    offset = 0
+    index = 0
+    File.readlines(infile).each do |line|
+      values = line.strip.split(/\s+/).map(&:to_i)
+      if index == 0
+        sets[0+offset] = [values[0]]
+        sets[1+offset] = [values[1]]
+        sets[2+offset] = [values[2]]
+      else
+        sets[0+offset].push(values[0])
+        sets[1+offset].push(values[1])
+        sets[2+offset].push(values[2])
+      end
+      index += 1
+      if index == 3
+        offset += 3
+        index = 0
+      end
+    end
+    pp sets
+    sets.each do |set|
+      count += 1 if triangle?(set)
+    end
+    puts "Triangles: #{count}"
+  end
+
+  def triangle?(set)
+   (set[0] + set[1] > set[2]) && \
+     (set[1] + set[2] > set[0]) && \
+     (set[0] + set[2] > set[1])
+  end
+end
+
+if __FILE__ == $0
+  Triangles.new
+end
