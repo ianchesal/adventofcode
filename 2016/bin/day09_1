@@ -1,0 +1,74 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Compressor
+  attr_accessor :abuf,:bufsize,:repeat,:output,:state
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '9', 'input')))
+    self.state   = :streaming
+    self.output  = ''
+    self.abuf    = ''
+    self.bufsize = ''
+    self.repeat  = ''
+    File.open(infile).each_char { |c| process_char(c) }
+    puts self.output
+    puts "Output length: #{self.output.length-1}"
+  end
+
+  def process_char(c)
+    case self.state
+    when :streaming
+      if c == '('
+        puts ":streaming -> :buffersize"
+        self.state   = :buffersize
+        self.bufsize = ''
+        self.repeat  = ''
+        self.abuf    = ''
+      else
+        self.output += c
+        puts "Output Size: #{self.output.length}"
+      end
+    when :buffersize
+      if c == 'x'
+        puts ":buffersize -> :repeatcount"
+        self.state   = :repeatcount
+        self.bufsize = self.bufsize.to_i
+      else
+        self.bufsize += c
+      end
+    when :repeatcount
+      if c == ')'
+        self.repeat = self.repeat.to_i
+        #puts "Decoding #{self.bufsize} characters #{self.repeat} times"
+        puts ":repeatcount -> :accumulating"
+        self.state = :accumulating
+      else
+        self.repeat += c
+      end
+    when :accumulating
+      if self.abuf.length < self.bufsize
+        self.abuf += c
+      else
+        puts "Adding #{self.abuf.length} characters #{self.repeat} times to output"
+        self.output += self.abuf * self.repeat
+        puts "Output Size: #{self.output.length}"
+        if c == '('
+          puts ":accumulating -> :buffersize"
+          self.bufsize = ''
+          self.repeat  = ''
+          self.abuf    = ''
+          self.state = :buffersize
+        else
+          puts ":accumulating -> :streaming"
+          self.state = :streaming
+          self.output += c
+        end
+      end
+    else
+      fail "Unknow state #{self.state}"
+    end
+  end
+end
+
+if __FILE__ == $0
+  Compressor.new
+end

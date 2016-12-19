@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Compressor
+  attr_accessor :abuf,:bufsize,:repeat,:output,:state
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '9', 'input')))
+    original = File.open(infile).read
+    puts process_chunk(original)
+  end
+
+  def process_chunk(c)
+    acc = 0
+    i = 0
+    while(i < c.length)
+      puts "Examining: #{c[i]}"
+      if c[i] == '('
+        bsize = ''
+        mult  = ''
+        i += 1
+        while(c[i] != 'x')
+          bsize += c[i]
+          i += 1
+        end
+        bsize = bsize.to_i
+        i += 1
+        while(c[i] != ')')
+          mult += c[i]
+          i += 1
+        end
+        mult = mult.to_i
+        acc += mult * process_chunk(c[i+1..i+bsize])
+        i += bsize
+      else
+        acc += 1 if !c[i].match(/\s/)
+      end
+      i += 1
+    end
+    acc
+  end
+end
+
+if __FILE__ == $0
+  Compressor.new
+end
