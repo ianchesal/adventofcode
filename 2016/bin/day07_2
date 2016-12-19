@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Tls
+  attr_accessor :good_ips
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '7', 'input')))
+    self.good_ips = []
+    File.readlines(infile).each do |line|
+      ip = IP.new(line.strip)
+      self.good_ips << ip if ip.ssl?
+    end
+    puts "SSL IPs: #{self.good_ips.count}"
+  end
+
+  class IP
+    attr_accessor :supernets, :hypernets
+    def initialize(string)
+      _parse(string)
+    end
+
+    def tls?
+      hypernets.each do |h|
+        return false if abba?(h)
+      end
+      supernets.each do |h|
+        return true if abba?(h)
+      end
+      false
+    end
+
+    def ssl?
+      abas = []
+      supernets.each do |s|
+        abas += generate_abas(s)
+      end
+      abas.each do |aba|
+        bab = "#{aba[1]}#{aba[0]}#{aba[1]}"
+        hypernets.each do |h|
+          return true if h.include?(bab)
+        end
+      end
+      false
+    end
+
+    def _parse(string)
+      self.hypernets = string.scan(/\[\w+\]/)
+      self.hypernets.each do |net|
+        net[0] = ''
+        net[-1] = ''
+      end
+      self.supernets = string.split(/\[\w+\]/)
+    end
+
+    def generate_abas(string)
+      abas = []
+      index = 0
+      while(index < string.length - 2)
+        slice = string[index..index+2]
+        abas << slice if slice[0] == slice[2] && slice[0] != slice[1]
+        index += 1
+      end
+      abas
+    end
+
+    def abba?(string)
+      index = 0
+      while(index < string.length - 3)
+        slice = string[index..index+3]
+        return slice if _abba_helper(slice)
+        index += 1
+      end
+      false
+    end
+
+    def _abba_helper(string)
+      ab = string[0, string.length/2]
+      ba = string[string.length/2, string.length]
+      return false if string.length % 2 != 0
+      return false if ab == ba
+      ab == ba.reverse
+    end
+  end
+end
+
+if __FILE__ == $0
+  Tls.new
+end
