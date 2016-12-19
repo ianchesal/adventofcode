@@ -5,16 +5,16 @@ class Screen
   attr_accessor :screen
   def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '8', 'input')))
     self.screen = [
-      ['.']*50,
-      ['.']*50,
-      ['.']*50,
-      ['.']*50,
-      ['.']*50,
-      ['.']*50
+      [' ']*50,
+      [' ']*50,
+      [' ']*50,
+      [' ']*50,
+      [' ']*50,
+      [' ']*50
     ]
     File.readlines(infile).each do |line|
       parse_action(line)
-      put_screen
+      draw_screen
     end
     lit = 0
     self.screen.each do |r|
@@ -41,7 +41,7 @@ class Screen
     end
   end
 
-  def put_screen
+  def draw_screen
     puts ""
     screen.each do |row|
       puts row.join('')
@@ -50,12 +50,12 @@ class Screen
 
   def clear_screen
     self.screen = [
-      ['.']*50,
-      ['.']*50,
-      ['.']*50,
-      ['.']*50,
-      ['.']*50,
-      ['.']*50
+      [' ']*50,
+      [' ']*50,
+      [' ']*50,
+      [' ']*50,
+      [' ']*50,
+      [' ']*50
     ]
   end
 
