@@ -1,0 +1,96 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Screen
+  attr_accessor :screen
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '8', 'input')))
+    self.screen = [
+      ['.']*50,
+      ['.']*50,
+      ['.']*50,
+      ['.']*50,
+      ['.']*50,
+      ['.']*50
+    ]
+    File.readlines(infile).each do |line|
+      parse_action(line)
+      put_screen
+    end
+    lit = 0
+    self.screen.each do |r|
+      r.each do |p|
+        lit += 1 if p == '#'
+      end
+    end
+    puts "Lit: #{lit}"
+  end
+
+  def parse_action(string)
+    case
+    when string.include?('rect ')
+      m = /(\d+)x(\d+)/.match(string)
+      draw_rectangle(m[1].to_i, m[2].to_i)
+    when string.include?('rotate row ')
+      m = /y=(\d+) by (\d+)/.match(string)
+      rotate_row(m[1].to_i, m[2].to_i)
+    when string.include?('rotate column ')
+      m = /x=(\d+) by (\d+)/.match(string)
+      rotate_column(m[1].to_i, m[2].to_i)
+    else
+      fail "Unknown action: #{string}"
+    end
+  end
+
+  def put_screen
+    puts ""
+    screen.each do |row|
+      puts row.join('')
+    end
+  end
+
+  def clear_screen
+    self.screen = [
+      ['.']*50,
+      ['.']*50,
+      ['.']*50,
+      ['.']*50,
+      ['.']*50,
+      ['.']*50
+    ]
+  end
+
+  def draw_rectangle(x,y)
+    fail "Too wide" if x > 50
+    fail "Too high" if y > 6
+    row = 0
+    while row < y
+      column = 0
+      while column < x
+        screen[row][column] = '#'
+        column += 1
+      end
+      row += 1
+    end
+  end
+
+  def rotate_row(row, steps)
+    self.screen[row].rotate!(-steps)
+  end
+
+  def rotate_column(column, steps)
+    c = []
+    screen.each do |row|
+      c << row[column]
+    end
+    c.rotate!(-steps)
+    index = 0
+    while(index < c.length)
+      screen[index][column] = c[index]
+      index += 1
+    end
+  end
+end
+
+if __FILE__ == $0
+  Screen.new
+end
