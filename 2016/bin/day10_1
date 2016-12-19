@@ -8,16 +8,9 @@ class Factory
     self.bots = {}
     File.readlines(infile).each do |line|
       parse(line)
-      self.bots.keys.sort.each do |bot|
-        next unless self.bots[bot].key?(:values)
-        if self.bots[bot][:values].include?(61)
-          puts "bot-#{bot} => [#{self.bots[bot][:values].join(', ')}]"
-        end
-        if self.bots[bot][:values].include?(17)
-          puts "bot-#{bot} => [#{self.bots[bot][:values].join(', ')}]"
-        end
-      end
     end
+    pp [self.outputs[0], self.outputs[1], self.outputs[2]]
+    puts self.outputs[0][0] * self.outputs[1][0] * self.outputs[2][0]
   end
 
   def init_bot(bot)
