@@ -1,0 +1,118 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Factory
+  attr_accessor :outputs, :bots
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '10', 'input')))
+    self.outputs = {}
+    self.bots = {}
+    File.readlines(infile).each do |line|
+      parse(line)
+      self.bots.keys.sort.each do |bot|
+        next unless self.bots[bot].key?(:values)
+        if self.bots[bot][:values].include?(61)
+          puts "bot-#{bot} => [#{self.bots[bot][:values].join(', ')}]"
+        end
+        if self.bots[bot][:values].include?(17)
+          puts "bot-#{bot} => [#{self.bots[bot][:values].join(', ')}]"
+        end
+      end
+    end
+  end
+
+  def init_bot(bot)
+    self.bots[bot]               = {} unless self.bots[bot]
+    self.bots[bot][:values]      = [] unless self.bots[bot].key?(:values)
+    self.bots[bot][:instruction] = '' unless self.bots[bot].key?(:instruction)
+  end
+
+  def has_instruction?(bot)
+    init_bot(bot)
+    self.bots[bot][:instruction] != ''
+  end
+
+  def parse(string)
+    string.strip!
+    # puts "Parsing: #{string}"
+    if string.include?('goes to bot')
+      m = /value (\d+) goes to bot (\d+)/.match(string)
+      bot = m[2].to_i
+      init_bot(bot)
+      assign_to(bot, m[1].to_i)
+      run_instruction_for(bot)
+    else
+      m = /bot (\d+) gives \w+ to \w+ \d+ and \w+ to \w+ \d+/.match(string)
+      fail "Unrecognized instruction: #{string}" unless m
+      bot = m[1].to_i
+      init_bot(bot)
+      fail "bot-#{bot} already has stored instruction" if has_instruction?(bot)
+      self.bots[bot][:instruction] = string
+      run_instruction_for(bot)
+    end
+  end
+
+  def run_instruction_for(bot)
+    return unless self.bots[bot][:values].count == 2 && has_instruction?(bot)
+    puts "Running instruction for bot-#{bot} with values [#{self.bots[bot][:values].join(', ')}]: #{self.bots[bot][:instruction]}"
+    run_instruction(self.bots[bot][:instruction])
+  end
+
+  def run_instruction(instr)
+    m = /bot (\d+) gives (\w+) to (\w+) (\d+) and (\w+) to (\w+) (\d+)/.match(instr)
+    fail "Unrecognized instruction: #{instr}" unless m
+    from = m[1].to_i
+    # First Action
+    give(from, m[2], m[3], m[4].to_i)
+    run_instruction_for(m[4].to_i) if m[3] == 'bot'
+    # Second Action
+    give(from, m[5], m[6], m[7].to_i)
+    run_instruction_for(m[7].to_i) if m[6] == 'bot'
+  end
+
+  def give(from, value, type, to)
+    case type
+    when 'bot'
+      give_to(from, value, to)
+    when 'output'
+      output_to(from, value, to)
+    else
+      fail "Unrecognized type: #{type}"
+    end
+  end
+
+  def assign_to(bot, value)
+    init_bot(bot)
+    self.bots[bot][:values] << value
+    self.bots[bot][:values].sort!
+  end
+
+  def give_to(from, value, to)
+    init_bot(to)
+    case value
+    when 'low'
+      self.bots[to][:values] << self.bots[from][:values].shift
+      self.bots[to][:values].sort!
+    when 'high'
+      self.bots[to][:values] << self.bots[from][:values].pop
+      self.bots[to][:values].sort!
+    else
+      fail "Unknown value #{value}"
+    end
+  end
+
+  def output_to(from, value, output)
+    self.outputs[output] = [] unless self.outputs[output]
+    case value.downcase
+    when 'low'
+      self.outputs[output] << self.bots[from][:values].shift
+    when 'high'
+      self.outputs[output] << self.bots[from][:values].pop
+    else
+      fail "Unknown value #{value}"
+    end
+  end
+end
+
+if __FILE__ == $0
+  Factory.new
+end

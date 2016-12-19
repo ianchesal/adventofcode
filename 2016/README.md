@@ -1,6 +1,6 @@
 # Advent of Code - 2016
 
-The answers to the 2016 puzzles. Everything is in Ruby 2.3. To run the solutions:
+The answers to the [2016 puzzles](http://adventofcode.com/2016). Everything is in Ruby 2.3. To run the solutions:
 
     gem install bundler
     bundle install
