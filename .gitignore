@@ -51,3 +51,6 @@ build-iPhoneSimulator/
 
 # Debugging
 .byebug_history
+
+# Meh. Don't care about lib versions.
+/2021/Gemfile.lock
