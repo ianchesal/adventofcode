@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Fish
+  attr_accessor :spawn_timer
+  def initialize(timer)
+    self.spawn_timer = timer
+  end
+
+  def age(day=1)
+    self.spawn_timer -= day
+    new_fish = nil
+    if self.spawn_timer < 0
+      self.spawn_timer = 6
+      # A new fish is born!
+      new_fish = Fish.new(8)
+    end
+    return new_fish
+  end
+end
+
+class School
+  attr_accessor :school
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '6', 'input')))
+    self.school = []
+    days = 80
+    puts "Loading fish into the school..."
+    File.readlines(infile).each do |line|
+      line.chomp().split(',').each do |age|
+        self.school << Fish.new(age.to_i)
+      end
+    end
+
+    for day in 0...days
+      puts "Day #{day+1}"
+      puts "   Start count: #{self.school.length}"
+      for ind in 0...self.school.length
+        new_fish = self.school[ind].age
+        if new_fish
+          self.school << new_fish
+        end
+      end
+      puts "   End count:  #{self.school.length}"
+    end
+
+    puts "After #{days} we have #{self.school.length} fish"
+  end
+end
+
+if __FILE__ == $0
+  School.new
+end
