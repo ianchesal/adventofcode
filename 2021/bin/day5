@@ -1,0 +1,112 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Coordinate
+  attr_accessor :x, :y
+  def initialize(x,y)
+    self.x = x
+    self.y = y
+  end
+
+  def to_s
+    "(#{self.x},#{self.y})"
+  end
+end
+
+class Vector
+  attr_accessor :scoord, :ecoord
+  def initialize(coords)
+    line = coords.split(' -> ')[0].split(',').map{ |v| v.to_i }
+    self.scoord = Coordinate.new(line[0], line[1])
+    line = coords.split(' -> ')[1].split(',').map{ |v| v.to_i }
+    self.ecoord = Coordinate.new(line[0], line[1])
+  end
+
+  def line
+    line = []
+    coord = self.scoord.clone
+    if is_horizontal?
+      if self.scoord.x > self.ecoord.x
+        while coord.x >= self.ecoord.x
+          line << coord
+          coord = coord.clone
+          coord.x -= 1
+        end
+      else
+        while coord.x <= self.ecoord.x
+          line << coord
+          coord = coord.clone
+          coord.x += 1
+        end
+      end
+    else
+      if self.scoord.y > self.ecoord.y
+        while coord.y >= self.ecoord.y
+          line << coord
+          coord = coord.clone
+          coord.y -= 1
+        end
+      else
+        while coord.y <= self.ecoord.y
+          line << coord
+          coord = coord.clone
+          coord.y += 1
+        end
+      end
+    end
+    return line
+  end
+
+  def is_horizontal?
+    return true if self.scoord.y == self.ecoord.y
+    false
+  end
+
+  def is_vertical?
+    return true if self.scoord.x == self.ecoord.x
+    false
+  end
+
+  def to_s
+    self.scoord.to_s + ' -> ' + self.ecoord.to_s
+  end
+end
+
+class VentMap
+  attr_accessor :max_x, :max_y, :vectors, :map, :danger_spots
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '5', 'input')))
+    self.max_x = 1000
+    self.max_y = 1000
+    self.vectors = []
+    File.readlines(infile).each do |line|
+      self.vectors << Vector.new(line.chomp)
+    end
+    self.map = Array.new(self.max_x){Array.new(self.max_y, 0)}
+    puts "Got #{self.vectors.length} vectors"
+    puts "Vent map is a #{self.max_x}x#{self.max_y} grid and has #{self.max_x * self.max_y} grid points"
+    puts ""
+    puts "Generating vent map..."
+    vectors.each do |v|
+      v.line.each do |c|
+        mark_vent(c)
+      end
+    end
+    puts "Counting co-ordinates >1..."
+    self.danger_spots = 0
+    for x in 0...max_x
+      for y in 0...max_y
+        self.danger_spots += 1 if self.map[x][y] > 1
+      end
+    end
+    puts "Counted #{self.danger_spots} on the vent map"
+  end
+
+  def mark_vent(coordinate)
+    self.map[coordinate.x][coordinate.y] += 1
+  end
+end
+
+if __FILE__ == $0
+  VentMap.new
+end
+
