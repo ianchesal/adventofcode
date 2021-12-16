@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Sonar
+  attr_accessor :data
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '1', 'input')))
+    self.data = []
+    File.readlines(infile).each do |line|
+      self.data << line.to_i
+    end
+  end
+
+  def decreased_count()
+    prev = self.data[0]
+    decreased = 0
+    for ping in self.data
+      if ping > prev
+        decreased += 1
+      end
+      prev = ping
+    end
+    return decreased
+  end
+
+  def windowed_count()
+    prev = window_sum(0)
+    increased = 0
+    for index in 0 ... self.data.size-2
+      if window_sum(index) > prev
+        increased += 1
+      end
+      prev = window_sum(index)
+    end
+    return increased
+  end
+
+  def window_sum(index)
+    sum = self.data[index] + self.data[index+1] + self.data[index+2]
+    #puts "#{self.data[index]} + #{self.data[index+1]} + #{self.data[index+2]} = #{sum}"
+    return sum
+  end
+end
+
+if __FILE__ == $0
+  s = Sonar.new
+  puts "Part 1: #{s.decreased_count}"
+  puts "Part 2: #{s.windowed_count}"
+end
