@@ -1,0 +1,106 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Diagnostics
+  attr_accessor :rawdata
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '3', 'input')))
+    self.rawdata = []
+    File.readlines(infile).each do |line|
+      self.rawdata << line.chomp
+    end
+  end
+
+  def most_common(index, ldata)
+    zeros = 0
+    ones = 0
+    for data in ldata
+      if data.slice(index) == "0"
+        zeros += 1
+      else
+        ones += 1
+      end
+    end
+    if zeros > ones
+      return '0'
+    end
+    return '1'
+  end
+
+  def least_common(index, ldata)
+    zeros = 0
+    ones = 0
+    for data in ldata
+      if data.slice(index) == "0"
+        zeros += 1
+      else
+        ones += 1
+      end
+    end
+    if zeros > ones
+      return '1'
+    end
+    return '0'
+  end
+
+  def gamma
+    result = ''
+    for index in 0 ... self.rawdata[0].length
+      result += most_common(index, self.rawdata)
+    end
+    return result
+  end
+
+  def epsilon
+    result = ''
+    for index in 0 ... self.rawdata[0].length
+      result += least_common(index, self.rawdata)
+    end
+    return result
+  end
+
+  def oxygen_generator_rating
+    list = self.rawdata.clone
+    for index in 0 ... list[0].length
+      common = most_common(index, list)
+      # Delete everything from list that doesn't have common at index
+      list.delete_if {|val| val.slice(index) != common}
+      # Return if we only have one value left
+      return list[0] if list.length == 1
+    end
+    fail if list.length != 1
+    return list[0]
+  end
+
+  def c02_scrubber_rating
+    list = self.rawdata.clone
+    for index in 0 ... list[0].length
+      common = least_common(index, list)
+      # Delete everything from list that doesn't have common at index
+      list.delete_if {|val| val.slice(index) != common}
+      # Return if we only have one value left
+      return list[0] if list.length == 1
+    end
+    fail if list.length != 1
+    return list[0]
+  end
+end
+
+if __FILE__ == $0
+  d = Diagnostics.new
+  puts "Part 1"
+  puts "------"
+  gamma = d.gamma
+  epsilon = d.epsilon
+  puts "gamma:   #{gamma} --> #{gamma.to_i(2)}"
+  puts "epsilon: #{epsilon} --> #{epsilon.to_i(2)}"
+  puts "power:   #{gamma.to_i(2) * epsilon.to_i(2)}"
+
+  puts ""
+  puts "Part 2"
+  puts "------"
+  oxygen_generator_rating = d.oxygen_generator_rating
+  c02_scrubber_rating = d.c02_scrubber_rating
+  puts "oxygen generator rating: #{oxygen_generator_rating} --> #{oxygen_generator_rating.to_i(2)}"
+  puts "c02 scrubber rating:     #{c02_scrubber_rating} --> #{c02_scrubber_rating.to_i(2)}"
+  puts "life support rating:     #{oxygen_generator_rating.to_i(2)* c02_scrubber_rating.to_i(2)}"
+end
