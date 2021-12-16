@@ -22,38 +22,32 @@ class Vector
     self.ecoord = Coordinate.new(line[0], line[1])
   end
 
-  def line
+  def line(include_diagonals=false)
     line = []
-    coord = self.scoord.clone
-    if is_horizontal?
-      if self.scoord.x > self.ecoord.x
-        while coord.x >= self.ecoord.x
-          line << coord
-          coord = coord.clone
-          coord.x -= 1
-        end
-      else
-        while coord.x <= self.ecoord.x
-          line << coord
-          coord = coord.clone
-          coord.x += 1
-        end
-      end
-    else
-      if self.scoord.y > self.ecoord.y
-        while coord.y >= self.ecoord.y
-          line << coord
-          coord = coord.clone
-          coord.y -= 1
-        end
-      else
-        while coord.y <= self.ecoord.y
-          line << coord
-          coord = coord.clone
-          coord.y += 1
-        end
-      end
+    return line if not include_diagonals and is_diagonal?
+    x_move = 1
+    y_move = 1
+    if self.scoord.x > self.ecoord.x
+      x_move = -1
     end
+    if self.scoord.x == self.ecoord.x
+      x_move = 0
+    end
+    if self.scoord.y > self.ecoord.y
+      y_move = -1
+    end
+    if self.scoord.y == self.ecoord.y
+      y_move = 0
+    end
+    coord = self.scoord.clone
+    while coord.x != self.ecoord.x or coord.y != self.ecoord.y
+      line << coord
+      coord = coord.clone
+      coord.x += x_move
+      coord.y += y_move
+    end
+    coord = self.ecoord.clone
+    line << coord
     return line
   end
 
@@ -64,6 +58,11 @@ class Vector
 
   def is_vertical?
     return true if self.scoord.x == self.ecoord.x
+    false
+  end
+
+  def is_diagonal?
+    return true if self.scoord.x != self.ecoord.x and self.scoord.y != self.ecoord.y
     false
   end
 
@@ -81,13 +80,13 @@ class VentMap
     File.readlines(infile).each do |line|
       self.vectors << Vector.new(line.chomp)
     end
-    self.map = Array.new(self.max_x){Array.new(self.max_y, 0)}
+    self.map = Array.new(self.max_x){Array.new(self.max_y, '.')}
     puts "Got #{self.vectors.length} vectors"
     puts "Vent map is a #{self.max_x}x#{self.max_y} grid and has #{self.max_x * self.max_y} grid points"
     puts ""
     puts "Generating vent map..."
     vectors.each do |v|
-      v.line.each do |c|
+      v.line(true).each do |c|
         mark_vent(c)
       end
     end
@@ -95,15 +94,21 @@ class VentMap
     self.danger_spots = 0
     for x in 0...max_x
       for y in 0...max_y
+        next if self.map[x][y] == '.'
         self.danger_spots += 1 if self.map[x][y] > 1
       end
     end
+
     puts "Counted #{self.danger_spots} on the vent map"
   end
 
   def mark_vent(coordinate)
+    if self.map[coordinate.x][coordinate.y] == '.'
+      self.map[coordinate.x][coordinate.y] = 0
+    end
     self.map[coordinate.x][coordinate.y] += 1
   end
+
 end
 
 if __FILE__ == $0
