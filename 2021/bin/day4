@@ -1,0 +1,131 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Board
+  attr_accessor :mtx, :hits, :bingoed
+  def initialize(boarddata)
+    self.bingoed = false
+    self.mtx = []
+    ind = 0
+    for rowdata in boarddata
+      mtx[ind] = rowdata.split(' ').map{ |val| val.to_i }
+      ind += 1
+    end
+    self.hits = Array.new(self.mtx.length){Array.new(self.mtx[0].length, 0)}
+  end
+
+  def search(val)
+    for row in 0...self.mtx.length do
+      for col in 0...self.mtx[0].length do
+        if self.mtx[row][col] == val
+          hit!(row, col, val)
+          return true
+        end
+      end
+    end
+    return false
+  end
+
+  def hit!(row, col, val)
+    self.hits[row][col] = val
+    # Assuming 0 isn't a valid number in the game
+    self.mtx[row][col] = 0
+  end
+
+  def bingo?
+    return false if self.bingoed
+    # Check rows
+    for row in 0...self.mtx.length do
+      return true if self.mtx[row].sum == 0
+    end
+    # Check columns
+    for col in 0...self.mtx[0].length do
+      tmparray = []
+      for row in 0...self.mtx.length do
+        tmparray << self.mtx[row][col]
+      end
+      return true if tmparray.sum == 0
+    end
+    return false
+  end
+
+  def sum
+    total = 0
+    for row in self.mtx do
+      total += row.sum
+    end
+    return total
+  end
+end
+
+class BingoGame
+  attr_accessor :rawdata, :calls, :cards
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '4', 'input')))
+    self.rawdata = []
+    File.readlines(infile).each do |line|
+      self.rawdata << line.chomp
+    end
+    self.calls = rawdata[0].split(',').map{ |val| val.to_i }
+    self.cards = []
+    ind = 0
+    rawdata[1..-1].each_slice(6) do |s|
+      self.cards[ind] = Board.new(s[1..-1])
+      ind += 1
+    end
+  end
+
+  def play
+    self.calls.each do |call|
+      self.cards.each_with_index do |card, ind|
+        if card.search(call)
+          puts "Hit #{call} on card #{ind}"
+        end
+        if card.bingo?
+          puts "Bingo on card #{ind}"
+          pp card
+          sum = card.sum
+          puts "Sum: #{card.sum}"
+          puts "Answer: #{card.sum * call}"
+          return ind
+        end
+      end
+    end
+  end
+
+  def play_for_last
+    puts "Total cards is #{cards.length}"
+    puts "Total calls is #{calls.length}"
+    cards_remaining = self.cards.length
+    self.calls.each_with_index do |call, callindex|
+      self.cards.each_with_index do |card, ind|
+        if card.search(call)
+          #puts "Hit #{call} on card #{ind}"
+        end
+        if card.bingo?
+          puts "Bingo on card #{ind}"
+          cards_remaining -= 1
+          # Don't bingo on this card again
+          card.bingoed = true
+          puts "Cards left is #{cards_remaining}"
+        end
+        if cards_remaining == 0
+          puts "All cards have won"
+          puts "Last win was at call #{call} at index #{callindex}"
+          puts "Last winning card was:"
+          pp card
+          sum = card.sum
+          puts "Sum: #{card.sum}"
+          puts "Answer: #{card.sum * call}"
+          return ind
+        end
+      end
+    end
+    puts "I should not be here"
+  end
+end
+
+if __FILE__ == $0
+  game = BingoGame.new
+  #game.play
+  game.play_for_last
+end
