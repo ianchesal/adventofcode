@@ -2,10 +2,11 @@
 require 'pp'
 
 class HeightMap
-  attr_accessor :map
+  attr_accessor :map, :lps
   def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '9', 'input')))
     puts "Loading map data..."
     self.map = []
+    self.lps = []
     File.readlines(infile).each do |line|
       self.map.append(line.chomp.chars.map {|c| c.to_i})
     end
@@ -15,11 +16,55 @@ class HeightMap
       for y in 0...self.map[x].length
         if low_point?(x,y)
           puts "Low point at (#{x},#{y}): #{self.map[x][y]}"
+          self.lps.append([x,y])
           sum += 1 + self.map[x][y]
         end
       end
     end
-    puts "Sum of the risk levels is: #{sum}"
+    puts "Sum of the risk levels is: #{sum}\n\n"
+
+    sizes = []
+    self.lps.each do |lp|
+      puts "Seeking basin size for low point at (#{lp[0]},#{lp[1]})"
+      sizes << basin_size(lp[0], lp[1])
+      puts "Basin size low point at (#{lp[0]},#{lp[1]}) is #{sizes[-1]}"
+    end
+    product = 1
+    sizes.max(3).each do |s|
+      product *= s
+    end
+    puts "Product of three largest basins (#{sizes.max(3)}): #{product}"
+  end
+
+  def basin_size(x,y)
+    b = 1
+    if self.map[x][y] == 9
+      # 9s never belong to basins
+      #puts "(#{x},#{y}) is a 9"
+      return 0
+    end
+    if self.map[x][y] == -1
+      # This spot is in a basin already
+      #puts "(#{x}, #{y}) already belongs to a basin"
+      return 0
+    end
+    # Mark this map location as belonging to a basin
+    # already and then look around for more high
+    # points
+    self.map[x][y] = -1
+    if get_up(x,y) != 10
+      b += basin_size(x,y-1)
+    end
+    if get_down(x,y) != 10
+      b += basin_size(x,y+1)
+    end
+    if get_left(x,y) != 10
+      b += basin_size(x-1,y)
+    end
+    if get_right(x,y) != 10
+      b += basin_size(x+1,y)
+    end
+    return b
   end
 
   def low_point?(x, y)
