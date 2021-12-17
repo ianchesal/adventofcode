@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Crabs
+  attr_accessor :fleet
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '7', 'input')))
+    self.fleet = Hash.new
+    puts "Loading crab fleet..."
+    File.readlines(infile).each do |line|
+      line.chomp().split(',').each do |position|
+        add_crab(position.to_i)
+      end
+    end
+    max_position = self.fleet.keys.max
+    puts "Crab fleet is:"
+    pp self.fleet
+    puts "Max position: #{max_position}"
+
+    fuelcosts = (1..max_position+10).to_a
+
+    movements = []
+
+    for position in 0...max_position
+      movements[position] = 0
+      self.fleet.each do |start, size|
+        width = (position - start).abs
+        cost = fuelcosts[0..width-1]
+        cost = cost.sum
+        movements[position] += cost * size
+      end
+    end
+    elem, idx = movements.each_with_index.min
+    puts "Moving to position #{idx} uses the least amount of fuel: #{elem}"
+  end
+
+  def add_crab(position)
+    if not self.fleet.key?(position)
+      self.fleet[position] = 0
+    end
+    self.fleet[position] += 1
+  end
+end
+
+if __FILE__ == $0
+  Crabs.new
+end
