@@ -1,0 +1,152 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Displays
+  def initialize(infile = File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '8', 'input')))
+    puts "Loading notes..."
+    observations = []
+    digits = []
+    File.readlines(infile).each do |line|
+      obs, digs = line.chomp().split(' | ')
+      observations.append(obs.split(' ').map{ |c| c.chars.sort.join })
+      digits.append(digs.split(' ').map{ |c | c.chars.sort.join })
+    end
+
+    sum = 0
+
+    for i in 0...observations.length
+      segments = []
+      segments[1] = find_one(observations[i])
+      segments[4] = find_four(observations[i])
+      segments[7] = find_seven(observations[i])
+      segments[8] = find_eight(observations[i])
+      segments[9] = find_nine(segments, observations[i])
+      segments[3] = find_three(segments, observations[i])
+      segments[2] = find_two(segments, observations[i])
+      segments[5] = find_five(segments, observations[i])
+      segments[0] = find_zero(segments, observations[i])
+      segments[6] = find_six(segments, observations[i])
+      puts "Observations: #{observations[i]}"
+      puts "Segments:     #{segments}"
+      values = []
+      digits[i].each do |digit|
+        values << segments.find_index(digit)
+      end
+      puts "Digits:       #{digits[i]} --> #{values}"
+      sum += values[0] * 1000 + values[1] * 100 + values[2] * 10 + values[3]
+    end
+
+    puts "Sum: #{sum}"
+
+
+  end
+
+  def find_zero(segments, data)
+    data.each do |d|
+      next if d.length != 6
+      next if d == segments[9]
+      eight_copy = segments[8].clone
+      d.split('') { |c| eight_copy.delete!(c) }
+      return d.chars.sort.join if not segments[1].include? eight_copy
+    end
+    fail "No 0 found in #{data}"
+  end
+
+  def find_one(data)
+    data.each  { |i| return i.chars.sort.join if is_one?(i) }
+    fail "No 1 found in #{data}"
+  end
+
+  def find_two(segments, data)
+    data.each do |d|
+      next if d.length != 5
+      next if d == segments[3]
+      d_copy = d.clone
+      segments[3].split('') { |c| d_copy.delete!(c) }
+      segments[4].split('') { |c| d_copy.delete!(c) }
+      return d.chars.sort.join if d_copy.length == 1
+    end
+    fail "No 2 found in #{data}"
+  end
+
+  def find_three(segments, data)
+    data.each do |d|
+      next if d.length != 5
+      eight_copy = segments[8].clone
+      d.split('') { |c| eight_copy.delete!(c) }
+      segments[1].split('') { |c| eight_copy.delete!(c) }
+      return d.chars.sort.join if eight_copy.length == 2
+    end
+    fail "No 3 found in #{data}"
+  end
+
+  def find_four(data)
+    data.each { |i| return i.chars.sort.join if is_four?(i) }
+    fail "No 4 found in #{data}"
+  end
+
+  def find_five(segments, data)
+    data.each do |d|
+      next if d.length != 5
+      next if d == segments[3]
+      next if d == segments[2]
+      return d.chars.sort.join
+    end
+    fail "No 5 found in #{data}"
+  end
+
+  def find_six(segments, data)
+    data.each do |d|
+      next if d.length != 6
+      next if d == segments[0]
+      next if d == segments[9]
+      return d.chars.sort.join
+    end
+    fail "No 6 found in #{data}"
+  end
+
+  def find_seven(data)
+    data.each { |i| return i.chars.sort.join if is_seven?(i) }
+    fail "No 7 found in #{data}"
+  end
+
+  def find_eight(data)
+    data.each { |i| return i.chars.sort.join if is_eight?(i) }
+    fail "No 8 found in #{data}"
+  end
+
+  def find_nine(segments, data)
+    data.each do |d|
+      next if d.length != 6
+      d_copy = d.clone
+      segments[4].split('') { |c| d_copy.delete!(c) }
+      segments[7].split('') { |c| d_copy.delete!(c) }
+      return d.chars.sort.join if d_copy.length == 1
+    end
+    fail "No 9 found in #{data}"
+  end
+
+  def is_one?(segment)
+    return true if segment.length == 2
+    false
+  end
+
+  def is_four?(segment)
+    return true if segment.length == 4
+    false
+  end
+
+  def is_seven?(segment)
+    return true if segment.length == 3
+    false
+  end
+
+  def is_eight?(segment)
+    return true if segment.length == 7
+    false
+  end
+end
+
+if __FILE__ == $0
+  Displays.new
+end
