@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class SyntaxChecker
+  def initialize(test=false)
+    pairs = {
+      '{' => '}',
+      '(' => ')',
+      '[' => ']',
+      '<' => '>'
+    }
+    syntax_scores = {
+      ')' => 3,
+      ']' => 57,
+      '}' => 1197,
+      '>' => 25137
+    }
+    syntax = 0
+    autocomplete_scores = {
+      ')' => 1,
+      ']' => 2,
+      '}' => 3,
+      '>' => 4
+    }
+    autocomplete = []
+    illegals = {
+      ')' => 0,
+      ']' => 0,
+      '}' => 0,
+      '>' => 0
+    }
+    puts "START TEST MODE" if test
+    puts "Loading data..."
+    legal_lines = []
+    File.readlines(input_file(test)).each do |line|
+      corrupted = false
+      stack = []
+      line.chomp.chars do |c|
+        if expected = pairs[c]
+          stack << expected
+        else
+          unless stack.pop == c
+            puts "Found illegal: #{c}"
+            illegals[c] += 1
+            corrupted = true
+            next
+          end
+        end
+      end
+      unless corrupted
+        # Compute autocomplete score for this line
+        score = 0
+        stack.reverse.each do |c|
+          score *= 5
+          score += autocomplete_scores[c]
+        end
+        autocomplete << score
+      end
+    end
+
+    syntax_scores.keys.each do |k|
+      syntax += illegals[k] * syntax_scores[k]
+    end
+
+    puts "Syntax score: #{syntax}"
+
+    autocomplete.sort!
+    puts "Autocomplete score: #{autocomplete[(autocomplete.length/2).round]}"
+    puts "END TEST MODE" if test
+    puts ""
+  end
+
+  def input_file(test=false)
+    fname = 'input'
+    fname += '.test' if test
+    File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '10', fname))
+  end
+end
+
+if __FILE__ == $0
+  SyntaxChecker.new(false)
+end
