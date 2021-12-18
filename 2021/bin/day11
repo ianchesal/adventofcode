@@ -1,0 +1,125 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class Flash
+  attr_accessor :grid
+  def initialize(test=false)
+    self.grid = []
+    puts "START TEST MODE" if test
+    puts "Loading data..."
+    row = 0
+    File.readlines(input_file(test)).each do |line|
+      self.grid[row] = []
+      column = 0
+      line.chomp.chars do |c|
+        self.grid[row][column] = c.to_i
+        column += 1
+      end
+      row += 1
+    end
+
+    flashes = 0
+    sync_step = nil
+    for step in 0...100
+      increase_energy
+      trigger_flashes
+      flashes += count_flashes
+      if synchronized?
+        sync_step = step+1 unless sync_step
+      end
+    end
+    puts "Flashes counted: #{flashes}"
+
+    while !sync_step
+      step += 1
+      increase_energy
+      trigger_flashes
+      count_flashes
+      if synchronized?
+        sync_step = step + 1
+      end
+    end
+
+    puts "First sync step:  #{sync_step}"
+    puts "END TEST MODE" if test
+
+  end
+
+  def increase_energy
+    for x in 0...self.grid.length
+      for y in 0...self.grid[x].length
+        self.grid[x][y] += 1
+      end
+    end
+  end
+
+  def trigger_flashes
+    for x in 0...self.grid.length
+      for y in 0...self.grid[x].length
+        flash(x,y) if self.grid[x][y] > 9
+      end
+    end
+  end
+
+  def synchronized?
+    for x in 0...self.grid.length
+      for y in 0...self.grid[x].length
+        return false if self.grid[x][y] != 0
+      end
+    end
+    return true
+  end
+
+  def count_flashes
+    flashes = 0
+    for x in 0...self.grid.length
+      for y in 0...self.grid[x].length
+        if self.grid[x][y] > 9 or self.grid[x][y] < 0
+          flashes += 1
+          self.grid[x][y] = 0
+        end
+      end
+    end
+    return flashes
+  end
+
+  def flash(x,y)
+    self.grid[x][y] = -10000
+    adjacent_coords(x,y).each do |c|
+      # Increase energy of adjacent coords
+      self.grid[c[0]][c[1]] += 1
+    end
+    # If any adjacent coord > 9, it hasn't flashed
+    # yet so repeat flash() for that coordinate
+    adjacent_coords(x,y).each do |c|
+      if self.grid[c[0]][c[1]] > 9
+        flash(c[0],c[1])
+      end
+    end
+  end
+
+  def adjacent_coords(x,y)
+    coords = []
+    for nx in x-1...x+2
+      for ny in y-1...y+2
+        next if nx < 0 or nx >= self.grid.length
+        next if ny < 0 or ny >= self.grid[nx].length
+        next if nx == x and ny == y
+        coords.append([nx,ny])
+      end
+    end
+    return coords
+  end
+
+
+  def input_file(test=false)
+    fname = 'input'
+    fname += '.test' if test
+    File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '11', fname))
+  end
+end
+
+if __FILE__ == $0
+  #Flash.new(true)
+  Flash.new(false)
+end
