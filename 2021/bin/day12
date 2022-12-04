@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+require 'pp'
+
+class CaveSystem
+  attr_accessor :caves
+  def initialize(test=0)
+    self.caves = Hash.new { |h, k| h[k] = [] }
+    puts "START TEST MODE" if test>0
+    puts "Loading data..."
+    File.readlines(input_file(test)).each do |line|
+      (in_cave,out_cave) = line.chomp.split('-')
+      self.caves[in_cave].append(out_cave)
+      self.caves[out_cave].append(in_cave)
+      puts "#{in_cave}-#{out_cave}"
+    end
+    pp self.caves
+    # Don't let `start` exist in any cave
+    puts "Pruning cave system..."
+    self.caves.keys.each do |k|
+      self.caves[k].delete("start")
+    end
+    pp self.caves
+  end
+
+  def count_paths(built, can_revisit=True)
+    return 1 if built and built[-1] == 'end'
+  end
+
+  def input_file(test=0)
+    fname = 'input'
+    fname += ".test.#{test}" if test>0
+    File.expand_path(File.join(File.dirname(__FILE__), '..', 'day', '12', fname))
+  end
+end
+
+if __FILE__ == $0
+  CaveSystem.new(1)
+end
