@@ -4,6 +4,9 @@ Answers to [Advent of Code](http://adventofcode.com/) riddles.
 
 ## To run any answer...
 
-    cd 2021
+    cd <year>
+    asdf install
     bundle install
-    bundle exec bin/<the day you want to see answer for>
+    bundle exec <the day you want to see answer for>
+
+...or something like that. You'll figure it out.
